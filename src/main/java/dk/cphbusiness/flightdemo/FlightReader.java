@@ -8,6 +8,7 @@ import dk.cphbusiness.utils.Utils;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collector;
@@ -27,6 +28,10 @@ public class FlightReader {
             List<FlightDTO> filteredFlights = totalFlightTimeForAirline(flightList);
             filteredFlights.forEach(System.out::println);
             //flightInfoDTOList.forEach(System.out::println);
+
+            double avgTime = averageFlightTime(flightList);
+            System.out.println("Gennemsnitlig flyvetid for Lufthansa: " + avgTime + " minutter");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,6 +44,27 @@ public class FlightReader {
                         && flight.getAirline().getName().equalsIgnoreCase("Lufthansa"))
                 .collect(Collectors.toList());
     }
+
+    //Add a new feature (e.g. calculate the average flight time for a specific airline. For example, calculate the average flight time for all flights operated by Lufthansa)
+
+    public static double averageFlightTime(List<FlightDTO> flightList) {
+        List<FlightDTO> specificAirlineFlights = totalFlightTimeForAirline(flightList);
+
+        return specificAirlineFlights.stream()
+                .mapToLong(flight -> {
+                    LocalDateTime dep = flight.getDeparture().getScheduled();
+                    LocalDateTime arr = flight.getArrival().getScheduled();
+                    if (dep != null && arr != null) {
+                        return Duration.between(dep, arr).toMinutes();
+                    } else {
+                        return 0L;
+                    }
+                })
+                .average()
+                .orElse(0.0); // hvis listen er tom
+    }
+
+
 
 
 
