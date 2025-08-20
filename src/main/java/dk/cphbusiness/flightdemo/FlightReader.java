@@ -8,10 +8,9 @@ import dk.cphbusiness.utils.Utils;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -25,19 +24,26 @@ public class FlightReader {
         try {
             List<FlightDTO> flightList = getFlightsFromFile("flights.json");
             //List<FlightInfoDTO> flightInfoDTOList = getFlightInfoDetails(flightList);
-            List<FlightDTO> filteredFlights = totalFlightTimeForAirline(flightList);
-            filteredFlights.forEach(System.out::println);
+            //List<FlightDTO> filteredFlights = totalFlightForAirline(flightList);
+            //filteredFlights.forEach(System.out::println);
             //flightInfoDTOList.forEach(System.out::println);
 
             double avgTime = averageFlightTime(flightList);
             System.out.println("Gennemsnitlig flyvetid for Lufthansa: " + avgTime + " minutter");
+
+            LocalDateTime cutoff = LocalDateTime.of(2024, 8, 15, 00, 10);
+            List<FlightDTO> flightsBefore = flightsBeforeTime(flightList,cutoff);
+            flightsBefore.forEach(System.out::println);
+            System.out.println(" time: " + cutoff);
+
+
 
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static List<FlightDTO> totalFlightTimeForAirline(List<FlightDTO> flightList) {
+    public static List<FlightDTO> totalFlightForAirline(List<FlightDTO> flightList) {
         return flightList.stream()
                 .filter(flight -> flight.getAirline() != null
                         && flight.getAirline().getName() != null
@@ -48,7 +54,7 @@ public class FlightReader {
     //Add a new feature (e.g. calculate the average flight time for a specific airline. For example, calculate the average flight time for all flights operated by Lufthansa)
 
     public static double averageFlightTime(List<FlightDTO> flightList) {
-        List<FlightDTO> specificAirlineFlights = totalFlightTimeForAirline(flightList);
+        List<FlightDTO> specificAirlineFlights = totalFlightForAirline(flightList);
 
         return specificAirlineFlights.stream()
                 .mapToLong(flight -> {
@@ -65,9 +71,15 @@ public class FlightReader {
     }
 
 
-
-
-
+    //Add a new feature (make a list of flights that leaves before a specific time in the day/night. For example, all flights that leave before 01:00)
+    public static List<FlightDTO> flightsBeforeTime(List<FlightDTO> flightList, LocalDateTime cutoffTime) {
+        return flightList.stream()
+                .filter(flight -> {
+                    LocalDateTime departureTime = flight.getDeparture().getScheduled();
+                    return departureTime != null && departureTime.isBefore(cutoffTime);
+                })
+                .collect(Collectors.toList());
+    }
 
 
     public static List<FlightDTO> getFlightsFromFile(String filename) throws IOException {
