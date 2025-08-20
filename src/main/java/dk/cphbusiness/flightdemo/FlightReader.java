@@ -10,6 +10,8 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * Purpose:
@@ -21,12 +23,26 @@ public class FlightReader {
     public static void main(String[] args) {
         try {
             List<FlightDTO> flightList = getFlightsFromFile("flights.json");
-            List<FlightInfoDTO> flightInfoDTOList = getFlightInfoDetails(flightList);
-            flightInfoDTOList.forEach(System.out::println);
+            //List<FlightInfoDTO> flightInfoDTOList = getFlightInfoDetails(flightList);
+            List<FlightDTO> filteredFlights = totalFlightTimeForAirline(flightList);
+            filteredFlights.forEach(System.out::println);
+            //flightInfoDTOList.forEach(System.out::println);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+    public static List<FlightDTO> totalFlightTimeForAirline(List<FlightDTO> flightList) {
+        return flightList.stream()
+                .filter(flight -> flight.getAirline() != null
+                        && flight.getAirline().getName() != null
+                        && flight.getAirline().getName().equalsIgnoreCase("Lufthansa"))
+                .collect(Collectors.toList());
+    }
+
+
+
+
 
     public static List<FlightDTO> getFlightsFromFile(String filename) throws IOException {
 
